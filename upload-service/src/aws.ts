@@ -2,9 +2,9 @@ import { S3 } from "aws-sdk";
 import fs from "fs";
 
 const s3 = new S3({
-    accessKeyId: "AKIAXNGUVNOCDT3T7OEO",
-    secretAccessKey: "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",
-    region: "eu-north-1"
+    accessKeyId: "",
+    secretAccessKey: "",
+    region: ""
 })
 
 export const uploadFile = async (fileName: string, localFilePath: string) => {

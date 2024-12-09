@@ -2,9 +2,9 @@ import express from "express";
 import { S3 } from "aws-sdk";
 
 const s3 = new S3({
-    accessKeyId: "AKIAXNGUVNOCDT3T7OEO",
-    secretAccessKey: "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",
-    region: "eu-north-1"
+    accessKeyId: "",
+    secretAccessKey: "",
+    region: ""
 })
 
 const app = express();
