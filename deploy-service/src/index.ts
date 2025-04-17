@@ -1,13 +1,15 @@
-
+import express from "express";
 import { createClient, commandOptions } from "redis";
 import { ClosingError, GlideClusterClient, Logger } from "@valkey/valkey-glide";
 import { copyFinalDist, downloadS3Folder } from "./aws";
 import { buildProject, cleanupOutputFolder } from "./utils";
 import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand, ChangeMessageVisibilityCommand } from "@aws-sdk/client-sqs";
-
 import dotenv from "dotenv";
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 async function extendMessageVisibility(receiptHandle: string, visibilityTimeout: number) {
     try {
@@ -57,7 +59,12 @@ async function updateDeploymentStatus(id: string, status: string) {
     }
 }
 
-
+app.get('/health', (req, res) => {
+    res.json({ status: 'healthy' });
+});
+app.listen(PORT, () => {
+    console.log(`Deploy service listening on port ${PORT}`);
+});
 
 async function main() {
     while(true){
