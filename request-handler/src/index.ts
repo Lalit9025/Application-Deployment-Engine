@@ -41,6 +41,7 @@ app.get("/*", async (req, res) => {
         // const filePath = req.path;
         // console.log("filePath", filePath)
         const pathParts = req.path.split('/');
+        console.log("pathParts", pathParts)
         const id = pathParts[1]; // Get the first path segment
         
         if (!id) {
