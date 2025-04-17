@@ -1,9 +1,7 @@
 import express from "express";
-import { createClient, commandOptions } from "redis";
-import { ClosingError, GlideClusterClient, Logger } from "@valkey/valkey-glide";
 import { copyFinalDist, downloadS3Folder } from "./aws";
 import { buildProject, cleanupOutputFolder } from "./utils";
-import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand, ChangeMessageVisibilityCommand } from "@aws-sdk/client-sqs";
+import { SQSClient, ReceiveMessageCommand, DeleteMessageCommand, ChangeMessageVisibilityCommand } from "@aws-sdk/client-sqs";
 import dotenv from "dotenv";
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 dotenv.config();

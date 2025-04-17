@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import axios from "axios"
 
-const BACKEND_UPLOAD_URL = "https://application-deployment-engine.onrender.com";
+
+const apiUrl = import.meta.env.VITE_API_URL;
 // const BACKEND_UPLOAD_URL = "http://localhost:8081"
 
 export function Landing() {
@@ -35,13 +36,13 @@ export function Landing() {
             </div>
             <Button onClick={async () => {
               setUploading(true);
-              const res = await axios.post(`${BACKEND_UPLOAD_URL}/deploy`, {
+              const res = await axios.post(`${apiUrl}/deploy`, {
                 repoUrl: repoUrl
               });
               setUploadId(res.data.id);
               setUploading(false);
               const interval = setInterval(async () => {
-                const response = await axios.get(`${BACKEND_UPLOAD_URL}/status?id=${res.data.id}`);
+                const response = await axios.get(`${apiUrl}/status?id=${res.data.id}`);
 
                 if (response.data.status === "deployed") {
                   clearInterval(interval);
@@ -63,11 +64,11 @@ export function Landing() {
           <div className="space-y-2">
             <Label htmlFor="deployed-url">Deployed URL</Label>
             <Input 
-    id="deployed-url" 
-    readOnly 
-    type="url" 
-    value={`https://application-deployment-engine-2.onrender.com/site?id=${uploadId}`} 
-/>
+                id="deployed-url" 
+                readOnly 
+                type="url" 
+                value={`https://application-deployment-engine-2.onrender.com/site?id=${uploadId}`} 
+            />
           </div>
           <br />
           <Button className="w-full" variant="outline">

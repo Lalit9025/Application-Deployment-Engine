@@ -43,16 +43,6 @@ app.post("/deploy", async (req, res) => {
         const files = getAllFiles(path.join(__dirname, `output/${id}`));
         console.log("lalit", files)
 
-        // files.forEach(async (file) => {
-        //     // Get the relative path, starting from the 'output' folder
-        //     const relativePath = path.relative(path.join(__dirname), file);
-        
-        //     // Normalize the relative path to use forward slashes
-        //     const normalizedRelativePath = relativePath.replace(/\\/g, '/');
-        
-        //     // Ensure the path includes 'output' as the prefix in S3
-        //     await uploadFile(normalizedRelativePath, file);
-        // });
         await Promise.all(files.map(async (file) => {
             const relativePath = path.relative(path.join(__dirname), file);
             const normalizedRelativePath = relativePath.replace(/\\/g, '/');
@@ -85,11 +75,6 @@ app.post("/deploy", async (req, res) => {
 });
 
 app.get("/status", async (req, res) => {
-    // const id = req.query.id;
-    // const response = await subscriber.hGet("status", id as string);
-    // res.json({
-    //     status: response
-    // })
     try {
         const id = req.query.id;
         const response = await dynamodb.send(new GetItemCommand({

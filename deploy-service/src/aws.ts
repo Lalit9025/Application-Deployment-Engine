@@ -14,7 +14,6 @@ const s3Client = new S3Client({
     region: process.env.AWS_REGION
 })
 
-// output/asdasd
 export async function downloadS3Folder(prefix: string) {
     const command = new ListObjectsV2Command({
         Bucket: "codedrive",
@@ -23,7 +22,6 @@ export async function downloadS3Folder(prefix: string) {
 
     const allFiles = await s3Client.send(command);
     
-    // 
     const allPromises = allFiles.Contents?.map(async ({Key}) => {
         return new Promise(async (resolve) => {
             if (!Key) {
@@ -67,9 +65,7 @@ export function copyFinalDist(id: string) {
         throw new Error(`Build directory not found at: ${folderPath}`);
     }
     const allFiles = getAllFiles(folderPath);
-    // allFiles.forEach(file => {
-    //     uploadFile(`dist/${id}/` + file.slice(folderPath.length + 1), file);
-    // })
+    
     return Promise.all(allFiles.map(file => {
         const relativePath = `dist/${id}/` + file.slice(folderPath.length + 1);
         return uploadFile(relativePath, file);

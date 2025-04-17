@@ -17,7 +17,6 @@ const s3Client = new S3Client({
 export const uploadFile = async (fileName: string, localFilePath: string) => {
     const fileContent = fs.readFileSync(localFilePath);
     
-    // Normalize the fileName to use forward slashes
     const normalizedFileName = fileName.replace(/\\/g, '/');
 
     try {
