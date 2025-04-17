@@ -24,47 +24,256 @@ const getMimeType = (filePath: string) => {
         '.json': 'application/json',
         '.png': 'image/png',
         '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.gif': 'image/gif',
         '.ico': 'image/x-icon',
-        '.svg': 'image/svg+xml'
+        '.svg': 'image/svg+xml',
+        '.woff': 'font/woff',
+        '.woff2': 'font/woff2',
+        '.ttf': 'font/ttf',
+        '.eot': 'application/vnd.ms-fontobject'
     };
     return mimeTypes[ext] || 'application/octet-stream';
 };
+// app.get("/site/:id/*", async (req, res) => {
+//     try {
+//         //@ts-ignore
+//         const id = req.params.id;
+//         //@ts-ignore
 
-app.get("/*", async (req, res) => {
-    // id.100xdevs.com
-    try {
-        // const host = req.hostname;
-        // console.log("host", host)
-
-        // const id = host.split(".")[0];
-        // console.log("id", id)
-        // const filePath = req.path;
-        // console.log("filePath", filePath)
-        const pathParts = req.path.split('/');
-        console.log("pathParts", pathParts)
-        const id = pathParts[1]; // Get the first path segment
+//         const requestedPath = req.params[0] || '';
+//         // console.log("req", req);
+//         console.log("req.params", req.params);
+//         console.log("id", id);
+//         let s3Key = `dist/${id}/`;
+       
         
+//         // if (!id || id.length !== 5) {
+//         //     return res.status(404).send('Invalid deployment ID');
+//         // }
+
+//         // Get the file path from the URL (everything after the ID)
+//         // If no specific file is requested, default to index.html
+//         //@ts-ignore
+//         let filePath = req.params[0] || 'index.html';
+//         console.log("filePath", filePath);
+        
+//         // Remove leading slash if present
+//         if (filePath.startsWith('/')) {
+//             filePath = filePath.substring(1);
+//         }
+        
+//         // If path ends with a slash or is empty, append index.html
+//         if (filePath === '' || filePath.endsWith('/')) {
+//             filePath += 'index.html';
+//         }
+
+//         console.log(`Fetching: dist/${id}/${filePath}`);
+        
+//         const command = new GetObjectCommand({
+//             Bucket: "codedrive",
+//             Key: `dist/${id}/index.html`
+//         });
+//         console.log("command", command);
+        
+//         try {
+//             // const response = await s3Client.send(command);
+            
+//             // // Set the appropriate content type
+//             // res.set("Content-Type", getMimeType(filePath));
+            
+//             // if (response.Body) {
+//             //     const responseStream = await response.Body.transformToByteArray();
+//             //     res.send(Buffer.from(responseStream));
+//             // } else {
+//             //     res.status(404).send('File not found');
+//             // }
+//             const response = await s3Client.send(command);
+            
+//             // Set proper headers for browser rendering
+//             res.set({
+//                 'Content-Type': 'text/html',
+//                 'Content-Disposition': 'inline',
+//                 'Cache-Control': 'no-cache'
+//             });
+            
+//             if (response.Body) {
+//                 const responseStream = await response.Body.transformToByteArray();
+//                 res.send(Buffer.from(responseStream));
+//             } else {
+//                 res.status(404).send('Application not found');
+//             }
+//         } catch (error) {
+//             // console.error(`S3 error for ${filePath}:`, s3Error);
+            
+//             // If file not found and not already trying index.html, try serving index.html
+//             // This is important for SPA (Single Page Applications) routing
+//             // if (s3Error.code === 'NoSuchKey' && !filePath.endsWith('index.html')) {
+//             //     const indexCommand = new GetObjectCommand({
+//             //         Bucket: "codedrive",
+//             //         Key: `dist/${id}/index.html`
+//             //     });
+                
+//             //     try {
+//             //         const indexResponse = await s3Client.send(indexCommand);
+//             //         res.set("Content-Type", "text/html");
+                    
+//             //         if (indexResponse.Body) {
+//             //             const responseStream = await indexResponse.Body.transformToByteArray();
+//             //             res.send(Buffer.from(responseStream));
+//             //         } else {
+//             //             res.status(404).send('Application not found');
+//             //         }
+//             //     } catch (indexError) {
+//             //         res.status(404).send('Application not found');
+//             //     }
+//             // } else {
+//             //     res.status(404).send('File not found');
+//             // }
+//             console.error('Error fetching file:', error);
+//             res.status(404).send('Application not found');
+//         }
+//     } catch (error) {
+//         console.error('Error serving file:', error);
+//         res.status(500).send('Internal Server Error');
+//     }
+// });
+
+// Handle root path with just the ID
+// app.get("/:id", async (req, res) => {
+//     try {
+//         const id = req.params.id;
+        
+//         if (!id || id.length !== 5) {
+//             return res.status(404).send('Invalid deployment ID');
+//         }
+        
+//         const command = new GetObjectCommand({
+//             Bucket: "codedrive",
+//             Key: `dist/${id}/index.html`
+//         });
+        
+//         try {
+//             const response = await s3Client.send(command);
+//             res.set("Content-Type", "text/html");
+            
+//             if (response.Body) {
+//                 const responseStream = await response.Body.transformToByteArray();
+//                 res.send(Buffer.from(responseStream));
+//             } else {
+//                 res.status(404).send('Application not found');
+//             }
+//         } catch (error) {
+//             res.status(404).send('Application not found');
+//         }
+//     } catch (error) {
+//         console.error('Error serving index file:', error);
+//         res.status(500).send('Internal Server Error');
+//     }
+// });
+
+// Handle root path
+app.get("/", (req, res) => {
+    res.send('Welcome to Application Deployment Engine. Please provide a deployment ID.');
+});
+// Replace the existing route with this one
+// Replace existing routes with this one
+app.get("/site", async (req, res) => {
+    try {
+        const id = req.query.id as string;
+        const file = req.query.file as string || 'index.html';
+
         if (!id) {
-            return res.status(404).send('Deployment ID not found');
+            return res.status(400).send('Missing deployment ID');
         }
 
-        // Remove the ID from the path to get the file path
-        const filePath = pathParts.slice(2).join('/') || 'index.html';
-        
-        console.log({
-            id,
-            filePath,
-            fullPath: `dist/${id}/${filePath}`
-        });
+        console.log("ID:", id);
+        console.log("Requested File:", file);
+
+        // Construct the S3 key
+        const s3Key = `dist/${id}/${file}`;
+        console.log("S3 Key:", s3Key);
 
         const command = new GetObjectCommand({
             Bucket: "codedrive",
-            Key: `dist/${id}${filePath}`
+            Key: s3Key
         });
+
+        try {
+            const response = await s3Client.send(command);
+            
+            res.set({
+                'Content-Type': getMimeType(s3Key),
+                'Content-Disposition': 'inline',
+                'Cache-Control': file.startsWith('static/') ? 'public, max-age=31536000' : 'no-cache'
+            });
+            
+            if (response.Body) {
+                const responseStream = await response.Body.transformToByteArray();
+                res.send(Buffer.from(responseStream));
+            } else {
+                res.status(404).send('File not found');
+            }
+        } catch (error) {
+            // If file not found and not index.html, try serving index.html
+            if (file !== 'index.html') {
+                const indexCommand = new GetObjectCommand({
+                    Bucket: "codedrive",
+                    Key: `dist/${id}/index.html`
+                });
+
+                try {
+                    const indexResponse = await s3Client.send(indexCommand);
+                    res.set({
+                        'Content-Type': 'text/html',
+                        'Content-Disposition': 'inline',
+                        'Cache-Control': 'no-cache'
+                    });
+                    
+                    if (indexResponse.Body) {
+                        const responseStream = await indexResponse.Body.transformToByteArray();
+                        res.send(Buffer.from(responseStream));
+                    } else {
+                        res.status(404).send('Application not found');
+                    }
+                } catch (indexError) {
+                    res.status(404).send('Application not found');
+                }
+            } else {
+                res.status(404).send('File not found');
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+// ...existing code...
+
+// Handle static files (CSS and JS)
+app.get("/static/:type/:file", async (req, res) => {
+    try {
+        const { type, file } = req.params;
+        const id = req.query.id as string || req.get('Referer')?.split('id=')[1];
+
+        if (!id) {
+            return res.status(400).send('Missing deployment ID');
+        }
+
+        const s3Key = `dist/${id}/static/${type}/${file}`;
+        console.log("Static file request:", s3Key);
+
+        const command = new GetObjectCommand({
+            Bucket: "codedrive",
+            Key: s3Key
+        });
+
         const response = await s3Client.send(command);
-        
-        const type = filePath.endsWith("html") ? "text/html" : filePath.endsWith("css") ? "text/css" : "application/javascript"
-        res.set("Content-Type", getMimeType(filePath));
+        res.set({
+            'Content-Type': getMimeType(file),
+            'Content-Disposition': 'inline',
+            'Cache-Control': 'public, max-age=31536000'
+        });
 
         if (response.Body) {
             const responseStream = await response.Body.transformToByteArray();
@@ -73,10 +282,76 @@ app.get("/*", async (req, res) => {
             res.status(404).send('File not found');
         }
     } catch (error) {
-        console.error('Error serving file:', error);
-        res.status(500).send('Internal Server Error');
+        console.error('Error serving static file:', error);
+        res.status(404).send('File not found');
     }
-})
+});
+
+// Handle favicon.ico
+app.get("/favicon.ico", async (req, res) => {
+    try {
+        const id = req.query.id as string || req.get('Referer')?.split('id=')[1];
+        if (!id) {
+            return res.status(404).send('Favicon not found');
+        }
+
+        const command = new GetObjectCommand({
+            Bucket: "codedrive",
+            Key: `dist/${id}/favicon.ico`
+        });
+
+        const response = await s3Client.send(command);
+        res.set({
+            'Content-Type': 'image/x-icon',
+            'Cache-Control': 'public, max-age=31536000'
+        });
+
+        if (response.Body) {
+            const responseStream = await response.Body.transformToByteArray();
+            res.send(Buffer.from(responseStream));
+        } else {
+            res.status(404).send('Favicon not found');
+        }
+    } catch (error) {
+        console.error('Error serving favicon:', error);
+        res.status(404).send('Favicon not found');
+    }
+});
+
+// Handle manifest.json
+app.get("/manifest.json", async (req, res) => {
+    console.log
+    try {
+        const id = req.query.id as string || req.get('Referer')?.split('id=')[1];
+        if (!id) {
+            return res.status(404).send('Manifest not found');
+        }
+
+        const command = new GetObjectCommand({
+            Bucket: "codedrive",
+            Key: `dist/${id}/manifest.json`
+        });
+
+        const response = await s3Client.send(command);
+        res.set({
+            'Content-Type': 'application/json',
+            'Cache-Control': 'public, max-age=3600'
+        });
+
+        if (response.Body) {
+            const responseStream = await response.Body.transformToByteArray();
+            res.send(Buffer.from(responseStream));
+        } else {
+            res.status(404).send('Manifest not found');
+        }
+    } catch (error) {
+        console.error('Error serving manifest:', error);
+        res.status(404).send('Manifest not found');
+    }
+});
+
+// Main application route (keep your existing /site route)
+// ...existing code...
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
