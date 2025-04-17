@@ -18,9 +18,12 @@ app.get("/*", async (req, res) => {
     // id.100xdevs.com
     try {
         const host = req.hostname;
+        console.log("host", host)
 
         const id = host.split(".")[0];
+        console.log("id", id)
         const filePath = req.path;
+        console.log("filePath", filePath)
 
         const command = new GetObjectCommand({
             Bucket: "codedrive",
@@ -42,7 +45,7 @@ app.get("/*", async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 })
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

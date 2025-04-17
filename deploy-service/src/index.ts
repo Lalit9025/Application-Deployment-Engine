@@ -9,7 +9,7 @@ import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 async function extendMessageVisibility(receiptHandle: string, visibilityTimeout: number) {
     try {

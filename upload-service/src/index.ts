@@ -112,7 +112,7 @@ app.get("/status", async (req, res) => {
         res.status(500).json({ error: 'Status check failed' });
     }
 })
-
-app.listen(3000, ()=>{
+const PORT = process.env.PORT;
+app.listen(PORT, ()=>{
     console.log("server started")
 });
