@@ -1,30 +1,46 @@
 import express from "express";
-import { S3 } from "aws-sdk";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import dotenv from "dotenv";
 
-const s3 = new S3({
-    accessKeyId: "",
-    secretAccessKey: "",
-    region: ""
+const s3Client = new S3Client({
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
+    region: process.env.AWS_REGION
 })
 
 const app = express();
 
 app.get("/*", async (req, res) => {
     // id.100xdevs.com
-    const host = req.hostname;
+    try {
+        const host = req.hostname;
 
-    const id = host.split(".")[0];
-    const filePath = req.path;
+        const id = host.split(".")[0];
+        const filePath = req.path;
 
-    const contents = await s3.getObject({
-        Bucket: "codedrive",
-        Key: `dist/${id}${filePath}`
-    }).promise();
-    
-    const type = filePath.endsWith("html") ? "text/html" : filePath.endsWith("css") ? "text/css" : "application/javascript"
-    res.set("Content-Type", type);
+        const command = new GetObjectCommand({
+            Bucket: "codedrive",
+            Key: `dist/${id}${filePath}`
+        });
+        const response = await s3Client.send(command);
+        
+        const type = filePath.endsWith("html") ? "text/html" : filePath.endsWith("css") ? "text/css" : "application/javascript"
+        res.set("Content-Type", type);
 
-    res.send(contents.Body);
+        if (response.Body) {
+            const responseStream = await response.Body.transformToByteArray();
+            res.send(Buffer.from(responseStream));
+        } else {
+            res.status(404).send('File not found');
+        }
+    } catch (error) {
+        console.error('Error serving file:', error);
+        res.status(500).send('Internal Server Error');
+    }
 })
-
-app.listen(3001);
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});

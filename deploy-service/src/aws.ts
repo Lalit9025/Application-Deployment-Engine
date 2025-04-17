@@ -1,19 +1,27 @@
-import { S3 } from "aws-sdk";
+import { GetObjectCommand, ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
 import fs from "fs";
 import path from "path";
+import { Readable } from "stream";
+import dotenv from "dotenv";
+dotenv.config();
 
-const s3 = new S3({
-    accessKeyId: "",
-    secretAccessKey: "",
-    region: ""
+const s3Client = new S3Client({
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
+    region: process.env.AWS_REGION
 })
 
 // output/asdasd
 export async function downloadS3Folder(prefix: string) {
-    const allFiles = await s3.listObjectsV2({
+    const command = new ListObjectsV2Command({
         Bucket: "codedrive",
         Prefix: prefix
-    }).promise();
+    });
+
+    const allFiles = await s3Client.send(command);
     
     // 
     const allPromises = allFiles.Contents?.map(async ({Key}) => {
@@ -28,12 +36,24 @@ export async function downloadS3Folder(prefix: string) {
             if (!fs.existsSync(dirName)){
                 fs.mkdirSync(dirName, { recursive: true });
             }
-            s3.getObject({
+
+            const getObjectCommand = new GetObjectCommand({
                 Bucket: "codedrive",
                 Key
-            }).createReadStream().pipe(outputFile).on("finish", () => {
-                resolve("");
-            })
+            });
+            const response = await s3Client.send(getObjectCommand);
+            if (response.Body instanceof Readable){
+                response.Body?.pipe(outputFile).on("finish", () => {
+                    resolve("");
+                })
+            } else {
+                const bodyContents = await response.Body?.transformToByteArray();
+                if (bodyContents) {
+                    fs.writeFileSync(finalOutputPath, Buffer.from(bodyContents));
+                    resolve("");
+                } 
+            }
+            
         })
     }) || []
     console.log("awaiting");
@@ -42,11 +62,18 @@ export async function downloadS3Folder(prefix: string) {
 }
 
 export function copyFinalDist(id: string) {
-    const folderPath = path.join(__dirname, `output/${id}/dist`);
+    const folderPath = path.join(__dirname, `output/${id}/build`);
+    if (!fs.existsSync(folderPath)) {
+        throw new Error(`Build directory not found at: ${folderPath}`);
+    }
     const allFiles = getAllFiles(folderPath);
-    allFiles.forEach(file => {
-        uploadFile(`dist/${id}/` + file.slice(folderPath.length + 1), file);
-    })
+    // allFiles.forEach(file => {
+    //     uploadFile(`dist/${id}/` + file.slice(folderPath.length + 1), file);
+    // })
+    return Promise.all(allFiles.map(file => {
+        const relativePath = `dist/${id}/` + file.slice(folderPath.length + 1);
+        return uploadFile(relativePath, file);
+    }));
 }
 
 const getAllFiles = (folderPath: string) => {
@@ -65,11 +92,22 @@ const getAllFiles = (folderPath: string) => {
 
 const uploadFile = async (fileName: string, localFilePath: string) => {
     const fileContent = fs.readFileSync(localFilePath);
-    const response = await s3.upload({
-        Body: fileContent,
-        Bucket: "codedrive",
-        Key: fileName,
-    }).promise();
-    console.log(response);
+    try {
+        const upload = new Upload({
+            client: s3Client,
+            params: {
+                Bucket: "codedrive",
+                Key: fileName,
+                Body: fileContent,
+            },
+        });
+
+        const response = await upload.done();
+        console.log('upload completed', response);
+        return response;
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        throw error;
+    }
 }
 
